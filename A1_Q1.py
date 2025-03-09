@@ -3,18 +3,16 @@ import wandb
 import numpy as np
 import matplotlib.pyplot as plt
 
-
+# login and give name to the project 
 wandb.login()
-# Initialize wandb with project and name 
 wandb.init(project="fashion-mnist-classification", name ="visualising_the_input" )
 
-# Load Fashion MNIST datase
 (x_train, y_train), (x_test, y_test) = keras.datasets.fashion_mnist.load_data()
 
-# Define class labels
+# Defining the  class labels
 label_of_classes = ["T-shirt/top", "Trouser", "Pullover", "Dress", "Coat", "Sandal", "Shirt", "Sneaker", "Bag", "Ankle boot"]
 
-# Select one sample for each class
+# Selecting  one sample for each class
 eg_image = []
 label_eg = []
 for label in range(10):
@@ -22,7 +20,7 @@ for label in range(10):
     eg_image.append(x_train[index_eg])
     label_eg.append(label_of_classes[label])
 
-# Plot and log images
+# Plotting and log images in the wandb
 fig, axes = plt.subplots(2, 5, figsize=(10, 5))
 for i, ax in enumerate(axes.flat):
     ax.imshow(eg_image[i], cmap='gray')
@@ -33,5 +31,5 @@ plt.tight_layout()
 wandb.log({"Samples from the mnist fashion for classification": wandb.Image(fig)})
 plt.close(fig)
 
-# Finish wandb run
+# complete the wandb
 wandb.finish()
