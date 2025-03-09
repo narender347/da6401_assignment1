@@ -36,17 +36,16 @@ indices = np.random.permutation(X_train.shape[0])
 X_val, y_val = X_train[indices[:val_size]], y_train[indices[:val_size]]
 X_train, y_train = X_train[indices[val_size:]], y_train[indices[val_size:]]
 
-# One-hot encode labels
 y_train_one_hot = one_hot_encode(y_train, 10)
 y_val_one_hot = one_hot_encode(y_val, 10)
 y_test_one_hot = one_hot_encode(y_test, 10)
 
-# Function to train the model and log metrics
+# Function to train the model 
 def train_model(config=None):
     with wandb.init(config=config):
         config = wandb.config
 
-        # Generate a meaningful name for this run
+        # Giving a name for this run
         run_name = f"hl_{config.hidden_layers}_bs_{config.batch_size}_ac_{config.activation}_opt_{config.optimizer}"
         wandb.run.name = run_name  
 
@@ -54,7 +53,7 @@ def train_model(config=None):
         layers = [784] + [config.hidden_units] * config.hidden_layers + [10]
         model = NeuralNetwork(layers)
 
-        # Choose optimizer
+        # Choosing the  optimizer
         optimizer_dict = {
             'sgd': SGD(config.learning_rate),
             'momentum': Momentum(config.learning_rate, beta=0.9),
@@ -65,7 +64,7 @@ def train_model(config=None):
         }
         optimizer = optimizer_dict[config.optimizer]
 
-        # Track best validation accuracy
+
         best_val_accuracy = 0.0
         val_accuracy_table = wandb.Table(columns=["Epoch", "Validation Accuracy"])
 
@@ -106,14 +105,12 @@ def train_model(config=None):
             val_pred = np.argmax(val_A_last, axis=1)
             val_accuracy = np.mean(np.argmax(y_val_one_hot, axis=1) == val_pred)
 
-            # Update best validation accuracy
             if val_accuracy > best_val_accuracy:
                 best_val_accuracy = val_accuracy
 
-            # Add data point to wandb table for scatter plot
             val_accuracy_table.add_data(epoch + 1, val_accuracy)
 
-            # Log validation accuracy per epoch for scatter plot
+      t
             wandb.log({
                 'epoch': epoch + 1,
                 'train_loss': avg_loss,
@@ -124,14 +121,12 @@ def train_model(config=None):
 
             print(f'Epoch {epoch+1}/{config.epochs}, Loss: {avg_loss:.4f}, Acc: {avg_accuracy*100:.2f}%, '
                   f'Val Loss: {val_loss:.4f}, Val Acc: {val_accuracy*100:.2f}%')
-
-        # Log scatter plot in wandb
         wandb.log({"Validation Accuracy Scatter": wandb.plot.scatter(val_accuracy_table, "Epoch", "Validation Accuracy", title="Validation Accuracy Scatter")})
 
-        # Log the best validation accuracy
+      
         wandb.run.summary["best_val_accuracy"] = best_val_accuracy
 
-        # Evaluate model on test data
+        # Evaluate the model on the test data
         test_activation_fn = model.forward_propagation(X_test)
         test_A_last = test_activation_fn[f'A{len(layers)-1}']
         test_loss = model.calculate_loss(y_test_one_hot, test_A_last)
@@ -141,5 +136,4 @@ def train_model(config=None):
         wandb.run.summary["test_accuracy"] = test_accuracy
         wandb.log({'test_loss': test_loss, 'test_accuracy': test_accuracy})
 
-# Run the sweep
 wandb.agent(sweep_id, train_model, count=10)
