@@ -110,7 +110,6 @@ def train_model(config=None):
 
             val_accuracy_table.add_data(epoch + 1, val_accuracy)
 
-      t
             wandb.log({
                 'epoch': epoch + 1,
                 'train_loss': avg_loss,
